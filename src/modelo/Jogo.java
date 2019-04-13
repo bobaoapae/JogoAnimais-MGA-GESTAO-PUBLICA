@@ -12,8 +12,6 @@ public class Jogo {
     private List<Animal> animaisRespondidos;
 
     public Jogo() {
-        animaisRespondidos = new ArrayList<>();
-        controleCaracteristicas = new ControleCaracteristicas();
         this.reiniciar();
     }
 
@@ -71,7 +69,8 @@ public class Jogo {
     }
 
     public void reiniciar() {
-        animaisRespondidos.clear();
+        animaisRespondidos = new ArrayList<>();
+        controleCaracteristicas = new ControleCaracteristicas();
         Animal animal = new Animal("Tubarão");
         animal.addCaracteristicas(controleCaracteristicas.getCaracteristicaByName("vive na água"));
         animaisRespondidos.add(animal);
