@@ -9,6 +9,7 @@ public class Animal {
     private String nome;
     private List<Caracteristica> caracteristicas;
 
+
     public Animal(String nome) {
         this.nome = nome;
         this.caracteristicas = new ArrayList<>();

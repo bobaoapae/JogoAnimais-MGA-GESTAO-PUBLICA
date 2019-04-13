@@ -9,13 +9,12 @@ import java.util.List;
 public class Jogo {
 
     private ControleCaracteristicas controleCaracteristicas;
-    private List<Animal> animaisRespondidos;
 
     public Jogo() {
         this.reiniciar();
     }
 
-    private Animal qualAnimalUsuarioPensou(Animal animalAtual) {
+    private Animal qualAnimalUsuarioPensou(Animal animalAtual, Caracteristica... caracteristica) {
         String nomeAnimal = JOptionPane.showInputDialog(null, "Qual animal você pensou?");
         if (nomeAnimal == null || nomeAnimal.isEmpty()) {
             finalizarJogo();
@@ -25,7 +24,10 @@ public class Jogo {
             finalizarJogo();
         }
         Animal animal = new Animal(nomeAnimal);
-        animal.addCaracteristicas(animalAtual.getCaracteristicas());
+        if (caracteristica != null && caracteristica.length > 0) {
+            animal.addCaracteristicas(caracteristica);
+            controleCaracteristicas.getCaracteristicaByName(acaoAnimal).setCaracteristicaPai(caracteristica[0]);
+        }
         animal.addCaracteristicas(controleCaracteristicas.getCaracteristicaByName(acaoAnimal));
         return animal;
     }
@@ -35,30 +37,34 @@ public class Jogo {
         while (true) {
             JOptionPane.showMessageDialog(null, "Pense em um animal!", "Jogo dos Animais", JOptionPane.INFORMATION_MESSAGE);
             List<Caracteristica> caracteristicasDaRodada = controleCaracteristicas.caracteristicasSorteadas();
-            for (Caracteristica caracteristica : new ArrayList<>(caracteristicasDaRodada)) {
-                boolean flagSkip = false;
-                int opt = JOptionPane.showConfirmDialog(null, "O animal que você pensou " + caracteristica.getNome() + "?", "Jogo dos Animais", JOptionPane.YES_NO_OPTION);
-                if (opt == JOptionPane.YES_OPTION) {
-                    for (Animal animal : new ArrayList<>(caracteristica.getAnimais())) {
-                        opt = JOptionPane.showConfirmDialog(null, "O animal que você pensou é um " + animal.getNome() + "?", "Jogo dos Animais", JOptionPane.YES_NO_OPTION);
-                        if (opt == JOptionPane.YES_OPTION) {
-                            JOptionPane.showMessageDialog(null, "Acertei", "Jogo dos Animais", JOptionPane.INFORMATION_MESSAGE);
-                            opt = JOptionPane.showConfirmDialog(null, "Quer continuar jogando?", "Jogo dos Animais", JOptionPane.YES_NO_OPTION);
-                            if (opt != JOptionPane.YES_OPTION) {
-                                finalizarJogo();
-                            }
-                        } else if (caracteristica.getAnimais().indexOf(animal) == caracteristica.getAnimais().size() - 1) {
-                            qualAnimalUsuarioPensou(animal);
-                            flagSkip = true;
+            percorrerCaracteristicas(caracteristicasDaRodada);
+        }
+    }
+
+    private void percorrerCaracteristicas(List<Caracteristica> caracteristicas) {
+        for (Caracteristica caracteristica : new ArrayList<>(caracteristicas)) {
+            int opt = JOptionPane.showConfirmDialog(null, "O animal que você pensou " + caracteristica.getNome() + "?", "Jogo dos Animais", JOptionPane.YES_NO_OPTION);
+            if (opt == JOptionPane.YES_OPTION) {
+                for (Animal animal : new ArrayList<>(caracteristica.getAnimais())) {
+                    opt = JOptionPane.showConfirmDialog(null, "O animal que você pensou é um " + animal.getNome() + "?", "Jogo dos Animais", JOptionPane.YES_NO_OPTION);
+                    if (opt == JOptionPane.YES_OPTION) {
+                        JOptionPane.showMessageDialog(null, "Acertei", "Jogo dos Animais", JOptionPane.INFORMATION_MESSAGE);
+                        opt = JOptionPane.showConfirmDialog(null, "Quer continuar jogando?", "Jogo dos Animais", JOptionPane.YES_NO_OPTION);
+                        if (opt != JOptionPane.YES_OPTION) {
+                            finalizarJogo();
                         }
+                    } else if (caracteristica.getAnimais().indexOf(animal) == caracteristica.getAnimais().size() - 1) {
+                        if (caracteristica.getCaracteristicasFilhas().size() == 0) {
+                            qualAnimalUsuarioPensou(animal, caracteristica);
+                        } else {
+                            percorrerCaracteristicas(caracteristica.getCaracteristicasFilhas());
+                        }
+                        return;
                     }
-                } else if (caracteristicasDaRodada.indexOf(caracteristica) == caracteristicasDaRodada.size() - 1) {
-                    qualAnimalUsuarioPensou(caracteristica.getAnimais().get(caracteristica.getAnimais().size() - 1));
-                    flagSkip = true;
                 }
-                if (flagSkip) {
-                    break;
-                }
+            } else if (caracteristicas.indexOf(caracteristica) == caracteristicas.size() - 1) {
+                qualAnimalUsuarioPensou(caracteristica.getAnimais().get(caracteristica.getAnimais().size() - 1));
+                return;
             }
         }
     }
@@ -69,10 +75,8 @@ public class Jogo {
     }
 
     public void reiniciar() {
-        animaisRespondidos = new ArrayList<>();
         controleCaracteristicas = new ControleCaracteristicas();
         Animal animal = new Animal("Tubarão");
         animal.addCaracteristicas(controleCaracteristicas.getCaracteristicaByName("vive na água"));
-        animaisRespondidos.add(animal);
     }
 }
